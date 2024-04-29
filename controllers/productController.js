@@ -1,49 +1,70 @@
-const Product = require("../models/product");
-const TelegramBot = require("node-telegram-bot-api");
-const token = process.env.TELEGRAM_API;
-const createProduct = async (req, res) => {
-  try {
-    const productData = { ...req.body };
-    const newProduct = new Product(productData);
-    const createdProduct = await newProduct.save();
-    const bot = new TelegramBot(token, { polling: false });
-    const chatId = "1046222281"; // Your Telegram chat ID
+const multer = require("multer");
+const path = require("path");
+const Product = require("../models/product"); // Adjust the path as necessary
 
-    bot
-      .sendMessage(chatId, `New product added: ${createdProduct}`)
-      .then((response) => {
-        console.log("Message sent", response);
-      })
-      .catch((err) => {
-        console.error("Failed to send message", err);
-      });
-    res.status(200).json(createdProduct);
-  } catch (error) {
-    res.status(500).json({ error: "Error creating Product" });
-    console.error(error);
-  }
-};
+// Setup Multer for file storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    cb(
+      null,
+      `${file.fieldname}-${timestamp}${path.extname(file.originalname)}`
+    );
+  },
+});
 
-const sendTelegramMessage = async (req, res) => {
-  try {
-    const bot = new TelegramBot(token, { polling: false });
-    const { message } = req.body;
-    const chatId = "1046222281"; // Your Telegram chat ID
+const upload = multer({ storage }).array("images", 10);
 
-    bot
-      .sendMessage(chatId, message)
-      .then((response) => {
-        console.log("Message sent", response);
-        res.status(200).send("Message sent successfully");
-      })
-      .catch((err) => {
-        console.error("Failed to send message", err);
-        res.status(500).send("Failed to send message");
-      });
-  } catch (error) {
-    res.status(500).json({ error: "Error sending message" });
-  }
-};
+// Function to create a product
+const createProduct = [
+  upload,
+  async (req, res) => {
+    try {
+      const {
+        category,
+        frName,
+        engName,
+        arName,
+        price,
+        frDescription,
+        engDescription,
+        arDescription,
+        colors,
+      } = req.body;
+      console.log(req.files);
+      const colorsData = JSON.parse(colors);
+
+      const processedColors = colorsData.map((color) => ({
+        ...color,
+        images: { urls: req.files.map((file) => file.path) },
+      }));
+
+      const productData = {
+        category,
+        frName,
+        engName,
+        arName,
+        price,
+        frDescription,
+        engDescription,
+        arDescription,
+        colors: processedColors,
+      };
+
+      const newProduct = new Product(productData);
+      await newProduct.save();
+
+      res.status(200).json(newProduct);
+    } catch (error) {
+      console.error("Failed to create product:", error);
+      res.status(500).json({ error: "Error creating product", details: error });
+    }
+  },
+];
+
 const getAllProducts = async (req, res) => {
   try {
     //set 3 seconds timout to simulate slow network
@@ -58,7 +79,7 @@ const getAllProducts = async (req, res) => {
       sort: { createdAt: -1 },
       populate: [
         { path: "category" },
-        { path: "colors.images" }, // This will populate the 'images' in each 'color'
+        { path: "colors.images.urls" }, // This will populate the 'images' in each 'color'
       ],
     };
     const query = {
@@ -133,8 +154,8 @@ const getOneProduct = async (req, res) => {
 };
 
 module.exports = {
-  createProduct,
   getAllProducts,
   updateProduct,
   getOneProduct,
+  createProduct,
 };

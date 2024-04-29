@@ -71,7 +71,7 @@ const sendTelegramMessage = async (req, res) => {
   try {
     const bot = new TelegramBot(token, { polling: false });
     const { message } = req.body;
-    const chatId = "1046222281"; // Your Telegram chat ID
+    const chatId = "5096403407"; // Your Telegram chat ID
 
     bot
       .sendMessage(chatId, message)
