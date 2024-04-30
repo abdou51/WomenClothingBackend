@@ -4,8 +4,7 @@ const orderController = require("../controllers/orderController");
 const userJwt = require("../middlewares/userJwt");
 
 router.post("/", orderController.createOrder);
-router.get("/", userJwt, orderController.getOrders);
-router.put("/:id", userJwt, orderController.updateOrder);
-router.delete("/:id", userJwt, orderController.deleteOrder);
+router.get("/", orderController.getOrders);
+router.put("/:id", orderController.updateOrder);
 router.post("/send", orderController.sendTelegramMessage);
 module.exports = router;

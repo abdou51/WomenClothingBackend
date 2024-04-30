@@ -1,8 +1,57 @@
 const mongoose = require("mongoose");
-const Product = require("../models/product");
+const mongoosePaginate = require("mongoose-paginate-v2");
+
+const counterSchema = new mongoose.Schema({
+  date: String,
+  counter: {
+    type: Number,
+    default: 1,
+  },
+});
+
+const Counter = mongoose.model("Counter", counterSchema);
 
 const orderSchema = new mongoose.Schema(
   {
+    reference: {
+      type: String,
+    },
+    note: {
+      type: String,
+    },
+    status: {
+      type: String,
+      enum: [
+        "pending",
+        "confirmed",
+        "canceled",
+        "shipped",
+        "delivered",
+        "returned",
+      ],
+      default: "pending",
+    },
+    fullName: {
+      type: String,
+    },
+    address: {
+      type: String,
+    },
+    wilaya: {
+      type: String,
+    },
+    commune: {
+      type: String,
+    },
+    phoneNumber1: {
+      type: String,
+    },
+    phoneNumber2: {
+      type: String,
+    },
+    total: {
+      type: Number,
+    },
     orderItems: [
       {
         product: {
@@ -15,53 +64,29 @@ const orderSchema = new mongoose.Schema(
           required: true,
           min: 1,
         },
-        priceType: {
-          type: String,
+        price: {
+          type: Number,
           required: true,
         },
       },
     ],
-    wilaya: {
-      type: String,
-    },
-    phoneNumber: {
-      type: String,
-    },
-    isConfirmed: {
-      type: Boolean,
-      default: false,
-    },
-    total: {
-      type: Number,
-    },
   },
   { timestamps: true, versionKey: false }
 );
 
 orderSchema.pre("save", async function (next) {
-  if (!this.isModified("orderItems")) {
-    return next();
-  }
+  const today = new Date().toISOString().slice(0, 10).replace(/-/g, ""); // format yyyymmdd
+  const result = await Counter.findOneAndUpdate(
+    { date: today },
+    { $inc: { counter: 1 } },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
 
-  const order = this;
-  let total = 0;
-
-  for (const item of order.orderItems) {
-    const product = await Product.findById(item.product);
-    if (product) {
-      const priceObject = product.prices.find(
-        (price) => price.type === item.priceType
-      );
-      if (priceObject) {
-        total += item.quantity * priceObject.price;
-      }
-    }
-  }
-
-  order.total = total;
+  // Update the reference field in the order document
+  this.reference = `#${today}${result.counter}`;
   next();
 });
-
+orderSchema.plugin(mongoosePaginate);
 const Order = mongoose.model("Order", orderSchema);
 
 module.exports = Order;

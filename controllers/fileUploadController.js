@@ -19,6 +19,7 @@ const upload = multer({
 
 const uploadImage = async (req, res) => {
   try {
+    console.log(req.files);
     await new Promise((resolve, reject) => {
       upload(req, res, (err) => {
         if (err) reject(err);
@@ -34,10 +35,7 @@ const uploadImage = async (req, res) => {
 
     await newFile.save();
 
-    res.send({
-      message: "Files uploaded and saved successfully",
-      files: newFile,
-    });
+    res.send(newFile);
   } catch (err) {
     res.status(500).send({
       message: "Error occurred during upload or database operation",

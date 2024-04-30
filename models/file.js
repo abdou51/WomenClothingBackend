@@ -12,7 +12,7 @@ const fileSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true, versionKey: false, toJSON: { getters: true } }
+  { timestamps: true, versionKey: false, toJSON: { getters: true }, id: false }
 );
 
 const File = mongoose.model("File", fileSchema);

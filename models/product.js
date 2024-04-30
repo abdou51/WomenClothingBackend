@@ -12,30 +12,17 @@ const sizeSchema = new mongoose.Schema({
   },
 });
 
-const colorSchema = new mongoose.Schema(
-  {
-    hex: {
-      type: String,
-      required: true,
-    },
-    images: {
-      urls: [
-        {
-          type: String,
-          get: (url) => {
-            const baseUrl = process.env.BASE_URL || "http://localhost:3000/";
-            return baseUrl + url;
-          },
-        },
-      ],
-    },
-    sizes: [sizeSchema],
+const colorSchema = new mongoose.Schema({
+  hex: {
+    type: String,
+    required: true,
   },
-  {
-    toJSON: { getters: true, virtuals: true }, // Ensure to enable getters here
-    toObject: { getters: true, virtuals: true },
-  }
-);
+  images: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "File",
+  },
+  sizes: [sizeSchema],
+});
 
 const productSchema = new mongoose.Schema(
   {

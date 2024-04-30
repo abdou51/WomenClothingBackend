@@ -1,69 +1,16 @@
-const multer = require("multer");
-const path = require("path");
 const Product = require("../models/product"); // Adjust the path as necessary
 
-// Setup Multer for file storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    const timestamp = Date.now();
-    cb(
-      null,
-      `${file.fieldname}-${timestamp}${path.extname(file.originalname)}`
-    );
-  },
-});
-
-const upload = multer({ storage }).array("images", 10);
-
-// Function to create a product
-const createProduct = [
-  upload,
-  async (req, res) => {
-    try {
-      const {
-        category,
-        frName,
-        engName,
-        arName,
-        price,
-        frDescription,
-        engDescription,
-        arDescription,
-        colors,
-      } = req.body;
-      console.log(req.files);
-      const colorsData = JSON.parse(colors);
-
-      const processedColors = colorsData.map((color) => ({
-        ...color,
-        images: { urls: req.files.map((file) => file.path) },
-      }));
-
-      const productData = {
-        category,
-        frName,
-        engName,
-        arName,
-        price,
-        frDescription,
-        engDescription,
-        arDescription,
-        colors: processedColors,
-      };
-
-      const newProduct = new Product(productData);
-      await newProduct.save();
-
-      res.status(200).json(newProduct);
-    } catch (error) {
-      console.error("Failed to create product:", error);
-      res.status(500).json({ error: "Error creating product", details: error });
-    }
-  },
-];
+const createProduct = async (req, res) => {
+  try {
+    console.log(req.body);
+    const newProduct = new Product({ ...req.body });
+    await newProduct.save();
+    res.status(200).json(newProduct);
+  } catch (error) {
+    console.error("Failed to create product:", error);
+    res.status(500).json({ error: "Error creating product", details: error });
+  }
+};
 
 const getAllProducts = async (req, res) => {
   try {
@@ -77,10 +24,7 @@ const getAllProducts = async (req, res) => {
       page,
       limit,
       sort: { createdAt: -1 },
-      populate: [
-        { path: "category" },
-        { path: "colors.images.urls" }, // This will populate the 'images' in each 'color'
-      ],
+      populate: [{ path: "category" }, { path: "colors.images" }],
     };
     const query = {
       isDrafted: false,
