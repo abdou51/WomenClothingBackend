@@ -16,14 +16,6 @@ const registerUser = async (req, res) => {
         message: "User with given username already exists",
       });
     }
-
-    if (userData.username === password) {
-      return res.status(400).json({
-        success: false,
-        message: "Your username cannot be your password",
-      });
-    }
-
     user = new User({
       ...userData,
       passwordHash: bcrypt.hashSync(password, 10),
@@ -46,21 +38,16 @@ const registerUser = async (req, res) => {
 };
 const loginUser = async (req, res) => {
   try {
-    const user = await User.findOne({ username: req.body.username })
-
-    if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Utilisateur N'existe Pas" });
-    }
-
+    const user = await User.findOne({ username: req.body.username });
     if (user && bcrypt.compareSync(req.body.password, user.passwordHash)) {
       try {
-        const token = generateToken(user.id, user.role);
+        const token = generateToken(user.id);
         res.status(200).json({
           message: "Login successful",
           success: true,
-          user: user,
+          user: {
+            username: user.username,
+          },
           token: token,
         });
       } catch (tokenError) {
@@ -73,15 +60,21 @@ const loginUser = async (req, res) => {
       });
     }
   } catch (error) {
-    res
-      .status(500)
-      .send("Une erreur s'est produite lors de la recherche de l'utilisateur.");
+    res;
+    res.status(500).json({
+      success: false,
+      message: "Nom d'utilisateur ou mot de passe incorrect",
+    });
     console.log(error);
   }
 };
 
+const verifyJwt = (req, res) => {
+  res.status(200).json({ success: true, message: "Token is valid" });
+};
 
 module.exports = {
   registerUser,
   loginUser,
+  verifyJwt,
 };

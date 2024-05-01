@@ -7,11 +7,6 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    role: {
-      type: String,
-      enum: ["Admin", "Assistant"],
-      required: true,
-    },
     passwordHash: {
       type: String,
       required: true,

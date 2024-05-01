@@ -14,7 +14,6 @@ const createProduct = async (req, res) => {
 
 const getAllProducts = async (req, res) => {
   try {
-    //set 3 seconds timout to simulate slow network
     await new Promise((resolve) => setTimeout(resolve, 500));
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;

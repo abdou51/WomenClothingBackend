@@ -3,8 +3,7 @@ const Wilaya = require("../models/wilaya");
 const createWilaya = async (req, res) => {
   try {
     const newWilaya = new Wilaya({
-      name: req.body.name,
-      price: req.body.price,
+      ...req.body,
     });
 
     const createdWilaya = await newWilaya.save();
