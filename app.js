@@ -26,7 +26,11 @@ mongoose
   .then(() => console.log("Connected to the database"))
   .catch((err) => console.error("Database connection error:", err));
 
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 

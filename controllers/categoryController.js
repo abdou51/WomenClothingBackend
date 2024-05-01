@@ -1,4 +1,5 @@
 const Category = require("../models/category");
+const Product = require("../models/product");
 
 const createCategory = async (req, res) => {
   try {
@@ -39,6 +40,8 @@ const deleteCategory = async (req, res) => {
     if (!deletedCategory) {
       return res.status(404).json({ error: "Category not found" });
     }
+
+    await Product.deleteMany({ category: categoryId });
 
     res.status(200).json(deletedCategory);
   } catch (error) {

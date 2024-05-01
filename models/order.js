@@ -19,6 +19,15 @@ const orderSchema = new mongoose.Schema(
     note: {
       type: String,
     },
+    shippingType: {
+      type: String,
+      enum: ["desk", "home"],
+      required: true,
+    },
+    shippingPrice: {
+      type: Number,
+      default: 0,
+    },
     status: {
       type: String,
       enum: [
@@ -57,6 +66,14 @@ const orderSchema = new mongoose.Schema(
         product: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Product",
+          required: true,
+        },
+        hex: {
+          type: String,
+          required: true,
+        },
+        size: {
+          type: Number,
           required: true,
         },
         quantity: {
