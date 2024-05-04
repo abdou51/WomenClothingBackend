@@ -77,19 +77,7 @@ const getOneProduct = async (req, res) => {
   try {
     const product = await Product.findById(productId)
       .populate("category")
-      .populate("image1")
-      .populate("image2");
-    if (!product) {
-      return res.status(404).json({ error: "Product not found" });
-    }
-    const baseUrl = req.protocol + "://" + req.get("host") + "/";
-    if (product.image1) {
-      product.image1.url = baseUrl + product.image1.url;
-    }
-    if (product.image2) {
-      product.image2.url = baseUrl + product.image2.url;
-    }
-
+      .populate("colors.images");
     res.status(200).json(product);
   } catch (error) {
     res.status(500).json({ error: "Error getting Product" });
